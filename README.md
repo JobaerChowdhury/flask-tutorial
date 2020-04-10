@@ -15,3 +15,7 @@ flask run
 To clear database and initialize again run the following  
 flask init-db 
 
+
+
+### To learn 
+Find out what functools.wraps does

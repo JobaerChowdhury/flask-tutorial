@@ -7,8 +7,6 @@ Building a sample blog platform by following the official tutorial of the Flask 
 
 ### Todo
 
-- [ ] Register template  
-- [ ] Login Template  
 - [ ] Blog index view  
 - [ ] Blog index template  
 - [ ] Blog create view  
@@ -16,15 +14,18 @@ Building a sample blog platform by following the official tutorial of the Flask 
 - [ ] Blog update view  
 - [ ] Blog update template  
 - [ ] Blog delete  
-- [ ] Add static file - css  
 
 ### In Progress
 
-- [ ] Register view  
-- [ ] Login view  
+- [ ] Login Template  
+- [ ] Register template  
 
 ### Done ✓
 
+- [x] Login view  
+- [x] Register view  
+- [x] Find vscode extension to view sqlite3 data  
+- [x] Add static file - css  
 - [x] Increase the line width to 120 character  
 - [x] Initialize todo board  
 - [x] Add a sample readme  
