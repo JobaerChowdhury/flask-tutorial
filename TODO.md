@@ -1,6 +1,9 @@
 # Flaskr blog engine
 
+(Use the coddx vs code extension to see this markdown file as a simple kanban board.)
+
 Building a sample blog platform by following the official tutorial of the Flask project. 
+
 
 ### Todo
 
@@ -19,10 +22,10 @@ Building a sample blog platform by following the official tutorial of the Flask 
 
 - [ ] Register view  
 - [ ] Login view  
-- [ ] Increase the line width to 120 character  
 
 ### Done ✓
 
+- [x] Increase the line width to 120 character  
 - [x] Initialize todo board  
 - [x] Add a sample readme  
 - [x] Initialize database  

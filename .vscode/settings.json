@@ -1,4 +1,10 @@
 {
     "python.pythonPath": "venv/bin/python",
-    "python.formatting.provider": "black"
+    "python.formatting.provider": "black",
+    "python.formatting.autopep8Args": [
+        "--max-line-length=120"
+    ],
+    "python.linting.pycodestyleArgs": [
+        "--max-line-length=120"
+    ]
 }
