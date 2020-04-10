@@ -7,19 +7,22 @@ Building a sample blog platform by following the official tutorial of the Flask 
 
 ### Todo
 
-- [ ] Blog index view  
-- [ ] Blog index template  
-- [ ] Blog create view  
-- [ ] Blog create template  
-- [ ] Blog update view  
-- [ ] Blog update template  
-- [ ] Blog delete  
+- [ ] Make it installable  
+- [ ] Testing and coverage  
+- [ ] Making production ready  
 
 ### In Progress
 
 
 ### Done ✓
 
+- [x] Blog delete  
+- [x] Blog update template  
+- [x] Blog update view  
+- [x] Blog create template  
+- [x] Blog create view  
+- [x] Blog index template  
+- [x] Blog index view  
 - [x] Register template  
 - [x] Login Template  
 - [x] Login view  

@@ -72,7 +72,7 @@ def login():
 
             flash(error)
 
-    return render_template("index")
+    return render_template("auth/login.html")
 
 
 @bp.before_app_request

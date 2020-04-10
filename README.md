@@ -19,3 +19,4 @@ flask init-db
 
 ### To learn 
 Find out what functools.wraps does
+Learn more about flask instance 
