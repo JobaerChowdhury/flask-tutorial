@@ -7,12 +7,14 @@ Building a sample blog platform by following the official tutorial of the Flask 
 
 ### Todo
 
-- [ ] Make it installable  
-- [ ] Testing and coverage  
+- [ ] Write test for app  
+- [ ] Write tests for auth  
+- [ ] Write tests for blog  
 - [ ] Making production ready  
 
 ### In Progress
 
+- [ ] Make it installable  
 
 ### Done ✓
 
