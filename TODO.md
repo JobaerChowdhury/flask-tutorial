@@ -17,11 +17,11 @@ Building a sample blog platform by following the official tutorial of the Flask 
 
 ### In Progress
 
-- [ ] Login Template  
-- [ ] Register template  
 
 ### Done ✓
 
+- [x] Register template  
+- [x] Login Template  
 - [x] Login view  
 - [x] Register view  
 - [x] Find vscode extension to view sqlite3 data  
