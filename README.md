@@ -8,9 +8,10 @@ https://flask.palletsprojects.com/en/1.1.x/tutorial/
 ### How to run 
 Activate venv   
 
-export FLASK_APP=flaskr  
-export FLASK_ENV=development  
-flask run  
+* pip install -r requirements.txt 
+* export FLASK_APP=flaskr  
+* export FLASK_ENV=development  
+* flask run  
 
 To clear database and initialize again run the following  
 flask init-db 
