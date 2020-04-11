@@ -15,6 +15,10 @@ flask run
 To clear database and initialize again run the following  
 flask init-db 
 
+### To run tests 
+* pytest 
+* coverage run -m pytest
+* coverage html 
 
 
 ### To learn 
