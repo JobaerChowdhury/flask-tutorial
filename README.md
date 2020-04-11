@@ -18,5 +18,6 @@ flask init-db
 
 
 ### To learn 
-Find out what functools.wraps does
-Learn more about flask instance 
+* Find out what functools.wraps does
+* Learn more about flask instance 
+* Learn more about pytest - monkeypatch, dependency inject

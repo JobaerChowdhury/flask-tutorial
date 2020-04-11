@@ -12,10 +12,10 @@ Building a sample blog platform by following the official tutorial of the Flask 
 ### In Progress
 
 - [ ] Write tests for blog  
-- [ ] Write tests for auth  
 
 ### Done ✓
 
+- [x] Write tests for auth  
 - [x] Write test for app  
 - [x] Make it installable  
 - [x] Blog delete  

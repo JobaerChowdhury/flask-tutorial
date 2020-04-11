@@ -63,14 +63,14 @@ def login():
         if user is None:
             error = "There is no user with username {}.".format(username)
         elif not check_password_hash(user["password"], password):
-            error = "Incorrect password"
+            error = "Incorrect password."
 
         if error is None:
             session.clear()
             session["user_id"] = user["id"]
             return redirect(url_for("index"))
 
-            flash(error)
+        flash(error)
 
     return render_template("auth/login.html")
 
