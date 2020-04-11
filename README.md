@@ -31,3 +31,9 @@ Now run the tests.
 * Find out what functools.wraps does
 * Learn more about flask instance 
 * Learn more about pytest - monkeypatch, dependency inject
+* Learn about instance folder 
+* learn about Flask object 
+* learn about g object 
+* Learn about the request, response, cookies, session, flash etc. 
+* Templates 
+* File upload 
