@@ -36,4 +36,8 @@ Now run the tests.
 * learn about g object 
 * Learn about the request, response, cookies, session, flash etc. 
 * Templates 
-* File upload 
+
+
+### Future enhancements 
+* Limit upload file size 
+

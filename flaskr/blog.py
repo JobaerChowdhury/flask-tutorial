@@ -1,5 +1,8 @@
+import os
 from flask import (
     Blueprint,
+    current_app,
+    send_from_directory,
     flash,
     g,
     redirect,
@@ -8,12 +11,18 @@ from flask import (
     url_for,
 )
 from werkzeug.exceptions import abort
+from werkzeug.utils import secure_filename
 
 from flaskr.db import get_db
 from flaskr.auth import login_required
 
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 
 bp = Blueprint("blog", __name__)
+
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @bp.route("/")
@@ -45,13 +54,27 @@ def create():
         if not title:
             error = "Title is required."
 
+        # check if the post request has the file part
+        filename = None
+        if "file" in request.files:
+            file = request.files["file"]
+            if file.filename == "":
+                pass
+            elif file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                # TODO Will it raise excpetion here?
+                file.save(os.path.join(current_app.config["UPLOAD_DIR"], filename))
+            else:
+                error = "File is not allowed."
+
         if error is not None:
             flash(error)
         else:
             db = get_db()
             db.execute(
-                "INSERT INTO post (title, body, author_id)" " VALUES (?, ?, ?)",
-                (title, body, g.user["id"]),
+                "INSERT INTO post (title, body, image_path, author_id)"
+                " VALUES (?, ?, ?, ?)",
+                (title, body, filename, g.user["id"]),
             )
             db.commit()
             return redirect(url_for("blog.index"))
@@ -59,11 +82,16 @@ def create():
     return render_template("blog/create.html")
 
 
+@bp.route("/uploads/<filename>")
+def uploaded_file(filename):
+    return send_from_directory(current_app.config["UPLOAD_DIR"], filename)
+
+
 def get_post(id, check_author=True):
     post = (
         get_db()
         .execute(
-            "SELECT p.id, title, body, created, author_id, username"
+            "SELECT p.id, title, body, image_path, created, author_id, username"
             " FROM post p JOIN user u ON p.author_id = u.id"
             " WHERE p.id = ?",
             (id,),
@@ -92,6 +120,20 @@ def update(id):
         if not title:
             error = "Title is required."
 
+        # check if the post request has the file part
+        filename = None
+        if "file" in request.files:
+            file = request.files["file"]
+            if file.filename == "":
+                pass
+            elif file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                # TODO Will it raise excpetion here?
+                file.save(os.path.join(current_app.config["UPLOAD_DIR"], filename))
+            else:
+                error = "File is not allowed."
+        print(filename)
+
         if error is not None:
             flash(error)
         else:
@@ -99,6 +141,11 @@ def update(id):
             db.execute(
                 "UPDATE post SET title = ?, body = ?" " WHERE id = ?", (title, body, id)
             )
+            if filename:
+                if post["image_path"] is None or filename != post["image_path"]:
+                    db.execute(
+                        "UPDATE post SET image_path = ?" " WHERE id = ?", (filename, id)
+                    )
             db.commit()
             return redirect(url_for("blog.index"))
     return render_template("blog/update.html", post=post)

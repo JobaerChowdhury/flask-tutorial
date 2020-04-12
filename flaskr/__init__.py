@@ -3,11 +3,16 @@ import os
 from flask import Flask
 
 
+IMAGES_DIR = "images"
+
+
 def create_app(test_config=None):
     # create and cofigure the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
-        SECRET_KEY="dev", DATABASE=(os.path.join(app.instance_path, "flaskr.sqlite"))
+        SECRET_KEY="dev",
+        UPLOAD_DIR=(os.path.join(app.instance_path, IMAGES_DIR)),
+        DATABASE=(os.path.join(app.instance_path, "flaskr.sqlite")),
     )
 
     if test_config is None:
@@ -20,6 +25,12 @@ def create_app(test_config=None):
     # ensure the instance folder exists
     try:
         os.makedirs(app.instance_path)
+    except OSError:
+        pass
+
+    # ensure the upload folder exists
+    try:
+        os.makedirs(app.config["UPLOAD_DIR"])
     except OSError:
         pass
 

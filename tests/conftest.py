@@ -1,5 +1,6 @@
 import os
 import tempfile
+import shutil
 
 import pytest
 from flaskr import create_app
@@ -26,8 +27,9 @@ class AuthActions(object):
 @pytest.fixture
 def app():
     db_fd, db_path = tempfile.mkstemp()
+    upload_path = tempfile.mkdtemp()
 
-    app = create_app({"TESTING": True, "DATABASE": db_path})
+    app = create_app({"TESTING": True, "DATABASE": db_path, "UPLOAD_DIR": upload_path})
 
     with app.app_context():
         init_db()
@@ -37,6 +39,7 @@ def app():
 
     os.close(db_fd)
     os.unlink(db_path)
+    shutil.rmtree(upload_path)
 
 
 @pytest.fixture
