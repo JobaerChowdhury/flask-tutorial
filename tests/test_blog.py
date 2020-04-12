@@ -12,8 +12,22 @@ def test_index(client, auth):
     assert b"Log Out" in response.data
     assert b"test title" in response.data
     assert b"by test on 2018-01-01" in response.data
-    assert b"test\nbody" in response.data
     assert b'href="/1/update"' in response.data
+    assert b'href="/1/detail"' in response.data
+
+
+def test_detail(client, auth):
+    # test 404, and 200 with both logged in and out
+    assert client.get("/3/detail").status_code == 404
+
+    resp = client.get("/1/detail")
+    assert resp.status_code == 200
+    assert b"test title" in resp.data
+    assert b"test\nbody" in resp.data
+
+    auth.login()
+    resp = client.get("/1/detail")
+    assert resp.status_code == 200
 
 
 @pytest.mark.parametrize("path", ("/create", "/1/update", "/1/delete",))
