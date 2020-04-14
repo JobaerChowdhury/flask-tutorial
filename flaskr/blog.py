@@ -15,6 +15,7 @@ from werkzeug.utils import secure_filename
 
 from flaskr.db import get_db
 from flaskr.auth import login_required
+from flaskr.reaction import get_reactions
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 
@@ -40,7 +41,8 @@ def index():
 @bp.route("/<int:post_id>/detail")
 def detail(post_id):
     post = get_post(post_id, check_author=False)
-    return render_template("blog/detail.html", post=post)
+    reactions = get_reactions(post_id)
+    return render_template("blog/detail.html", post=post, reactions=reactions)
 
 
 @bp.route("/create", methods=("GET", "POST"))

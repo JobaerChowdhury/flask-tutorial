@@ -28,6 +28,12 @@
     
 
     <p class="body">{{ post['body'] }}</p>
+
+    <div class="reactions">
+      <span><a href="{{ url_for('reaction.like_post', post_id=post['id']) }}">Like this</a></span>
+      <span><a href="{{ url_for('reaction.unlike_post', post_id=post['id']) }}">Unlike this</a></span>
+      <span class="summary">Liked by <span class="blue">{{reactions['like']}}</span>, unliked by <span class="red">{{reactions['unlike']}}</span></span>
+    </div>
   </article>
 
 {% endblock %}

@@ -46,6 +46,21 @@ def test_detail_without_image(client, auth):
     assert b'src="/uploads"' not in resp.data
 
 
+def test_detail_reactions(client, auth):
+    resp = client.get("/2/detail")
+    assert resp.status_code == 200
+    print(resp.data)
+    assert b'href="/reactions/post/2/like"' in resp.data
+    assert b'href="/reactions/post/2/unlike"' in resp.data
+
+
+def test_detail_reaction_count(client, auth):
+    resp = client.get("/1/detail")
+    assert resp.status_code == 200
+    assert b'Liked by <span class="blue">3' in resp.data
+    assert b'unliked by <span class="red">2' in resp.data
+
+
 @pytest.mark.parametrize("path", ("/create", "/1/update", "/1/delete",))
 def test_login_required(client, path):
     response = client.post(path)

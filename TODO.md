@@ -8,7 +8,6 @@ Building a sample blog platform by following the official tutorial of the Flask 
 ### Todo
 
 - [ ] Making production ready  
-- [ ] Like / unlike a post.  
 - [ ] Comments.  
 - [ ] Tags. Clicking a tag shows all the posts with that tag.  
 - [ ] A search box that filters the index page by name.  
@@ -18,10 +17,11 @@ Building a sample blog platform by following the official tutorial of the Flask 
 
 ### In Progress
 
-- [ ] Upload an image to go along with a post.  
+- [ ] Like / unlike a post.  
 
 ### Done ✓
 
+- [x] Upload an image to go along with a post.  
 - [x] A detail view to show a single post. Click a post’s title to go to its page.  
 - [x] Write tests for blog  
 - [x] Write tests for auth  
