@@ -112,6 +112,11 @@ header .action {
     font-size: 0.8em;
 }
 
+.pagination {
+    color: green;
+    margin-top: 60px;
+}
+
 .post .reactions a {
     padding-right: 6px;
 }

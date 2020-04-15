@@ -28,6 +28,12 @@ def init_db():
         db.executescript(f.read().decode("utf8"))
 
 
+def load_test_data():
+    db = get_db()
+    with current_app.open_resource("testdata.sql") as f:
+        db.executescript(f.read().decode("utf8"))
+
+
 @click.command("init-db")
 @with_appcontext
 def init_db_command():
@@ -36,6 +42,15 @@ def init_db_command():
     click.echo("Initialized the database")
 
 
+@click.command("load-test-data")
+@with_appcontext
+def load_test_data_command():
+    """Clear the existing data and create new tables."""
+    load_test_data()
+    click.echo("Loaded some test data")
+
+
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
+    app.cli.add_command(load_test_data_command)

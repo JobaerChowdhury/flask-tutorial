@@ -18,14 +18,17 @@ def test_index(client, auth):
     response = client.get("/")
     assert b"Log Out" in response.data
     assert b"test title" in response.data
-    assert b"by test on 2018-01-01" in response.data
+    assert b"by test on 2020-01-01" in response.data
     assert b'href="/1/update"' in response.data
     assert b'href="/1/detail"' in response.data
+    assert b'href="/?page=0"' in response.data
+    assert b'href="/?page=1"' in response.data
+    assert b'href="/?page=2"' in response.data
 
 
 def test_detail_with_image(client, auth):
     # test 404, and 200 with both logged in and out
-    assert client.get("/3/detail").status_code == 404
+    assert client.get("/393/detail").status_code == 404
 
     resp = client.get("/1/detail")
     assert resp.status_code == 200
@@ -89,6 +92,10 @@ def test_exists_required(client, auth, path):
 
 
 def test_create(client, auth, app):
+    with app.app_context():
+        db = get_db()
+        current_count = db.execute("SELECT COUNT(id) FROM post").fetchone()[0]
+
     auth.login()
     assert client.get("/create").status_code == 200
     client.post("/create", data={"title": "created", "body": ""})
@@ -96,10 +103,14 @@ def test_create(client, auth, app):
     with app.app_context():
         db = get_db()
         count = db.execute("SELECT COUNT(id) FROM post").fetchone()[0]
-        assert count == 3
+        assert count == current_count + 1
 
 
 def test_create_with_image(client, auth, app):
+    with app.app_context():
+        db = get_db()
+        current_count = db.execute("SELECT COUNT(id) FROM post").fetchone()[0]
+
     auth.login()
     create_with_image(client, "article_image.png")
 
@@ -107,7 +118,7 @@ def test_create_with_image(client, auth, app):
     with app.app_context():
         db = get_db()
         count = db.execute("SELECT COUNT(id) FROM post").fetchone()[0]
-        assert count == 3
+        assert count == current_count + 1
 
 
 def test_create_invalid_image(client, auth, app):

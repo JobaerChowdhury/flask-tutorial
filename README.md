@@ -1,5 +1,6 @@
 ## Flask tutorial 
 Example code from the official flask tutorial. 
+The extra features given as exercise are also impelemented. 
 
 https://flask.palletsprojects.com/en/1.1.x/tutorial/
 

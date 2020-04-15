@@ -11,7 +11,7 @@
     {% if posts|length ==0 %}
         <h3>No posts found.</h3>
     {% endif %}
-
+  
   {% for post in posts %}
     <article class="post">
       <header>
@@ -32,4 +32,12 @@
       <hr>
     {% endif %}
   {% endfor %}
+
+  <div class="pagination">    
+    {% for n in range(pages) %}
+      <a href="{{ url_for('blog.index', page=n)}}">{{n}}</a>
+    {% endfor%}
+
+  </div>
+
 {% endblock %}

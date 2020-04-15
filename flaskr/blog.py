@@ -1,4 +1,5 @@
 import os
+import math
 from flask import (
     Blueprint,
     current_app,
@@ -18,6 +19,7 @@ from flaskr.auth import login_required
 from flaskr.reaction import get_reactions
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
+PAGE_SIZE = 5
 
 bp = Blueprint("blog", __name__)
 
@@ -28,14 +30,42 @@ def allowed_file(filename):
 
 @bp.route("/")
 def index():
+    page = _get_page(request)
+    limit = PAGE_SIZE
+    offset = PAGE_SIZE * page
+
     db = get_db()
     posts = db.execute(
         "SELECT p.id, title, body, created, author_id, username"
         " FROM post p JOIN user u ON p.author_id = u.id"
         " ORDER BY created DESC"
+        " LIMIT ? OFFSET ?",
+        (limit, offset),
     ).fetchall()
 
-    return render_template("blog/index.html", posts=posts)
+    size = _total_post_count()
+    (q, r) = divmod(size, PAGE_SIZE)
+    if r == 0:
+        pages = q
+    else:
+        pages = q + 1
+
+    return render_template("blog/index.html", posts=posts, pages=pages)
+
+
+def _total_post_count():
+    db = get_db()
+    total = db.execute("SELECT COUNT(id) from post").fetchone()[0]
+    return total
+
+
+def _get_page(request):
+    if request.args.get("page"):
+        try:
+            return int(request.args.get("page"))
+        except ValueError:
+            return 0
+    return 0
 
 
 @bp.route("/<int:post_id>/detail")
