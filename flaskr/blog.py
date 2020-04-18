@@ -14,9 +14,18 @@ from flask import (
 from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
 
-from flaskr.db import get_db
 from flaskr.auth import login_required
-from flaskr.reaction import get_reactions
+from flaskr.reaction import REACTIONS
+from flaskr.db_service import (
+    get_reactions_by_entityid,
+    get_posts,
+    count_posts,
+    insert_post,
+    get_post_by_id,
+    update_post,
+    update_image_by_post_id,
+    delete_post_by_id,
+)
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 PAGE_SIZE = 5
@@ -34,16 +43,9 @@ def index():
     limit = PAGE_SIZE
     offset = PAGE_SIZE * page
 
-    db = get_db()
-    posts = db.execute(
-        "SELECT p.id, title, body, created, author_id, username"
-        " FROM post p JOIN user u ON p.author_id = u.id"
-        " ORDER BY created DESC"
-        " LIMIT ? OFFSET ?",
-        (limit, offset),
-    ).fetchall()
+    posts = get_posts(limit, offset)
+    size = count_posts()
 
-    size = _total_post_count()
     (q, r) = divmod(size, PAGE_SIZE)
     if r == 0:
         pages = q
@@ -51,12 +53,6 @@ def index():
         pages = q + 1
 
     return render_template("blog/index.html", posts=posts, pages=pages)
-
-
-def _total_post_count():
-    db = get_db()
-    total = db.execute("SELECT COUNT(id) from post").fetchone()[0]
-    return total
 
 
 def _get_page(request):
@@ -71,7 +67,7 @@ def _get_page(request):
 @bp.route("/<int:post_id>/detail")
 def detail(post_id):
     post = get_post(post_id, check_author=False)
-    reactions = get_reactions(post_id)
+    reactions = get_reactions_by_entityid(post_id, reactions=REACTIONS)
     return render_template("blog/detail.html", post=post, reactions=reactions)
 
 
@@ -102,13 +98,7 @@ def create():
         if error is not None:
             flash(error)
         else:
-            db = get_db()
-            db.execute(
-                "INSERT INTO post (title, body, image_path, author_id)"
-                " VALUES (?, ?, ?, ?)",
-                (title, body, filename, g.user["id"]),
-            )
-            db.commit()
+            insert_post(title, body, filename, g.user["id"])
             return redirect(url_for("blog.index"))
 
     return render_template("blog/create.html")
@@ -120,16 +110,7 @@ def uploaded_file(filename):
 
 
 def get_post(id, check_author=True):
-    post = (
-        get_db()
-        .execute(
-            "SELECT p.id, title, body, image_path, created, author_id, username"
-            " FROM post p JOIN user u ON p.author_id = u.id"
-            " WHERE p.id = ?",
-            (id,),
-        )
-        .fetchone()
-    )
+    post = get_post_by_id(id)
 
     if post is None:
         abort(404, "Post id {0} doesn't exist".format(id))
@@ -169,16 +150,10 @@ def update(id):
         if error is not None:
             flash(error)
         else:
-            db = get_db()
-            db.execute(
-                "UPDATE post SET title = ?, body = ?" " WHERE id = ?", (title, body, id)
-            )
+            update_post(title, body, id)
             if filename:
                 if post["image_path"] is None or filename != post["image_path"]:
-                    db.execute(
-                        "UPDATE post SET image_path = ?" " WHERE id = ?", (filename, id)
-                    )
-            db.commit()
+                    update_image_by_post_id(filename, id)
             return redirect(url_for("blog.index"))
     return render_template("blog/update.html", post=post)
 
@@ -187,7 +162,5 @@ def update(id):
 @login_required
 def delete(id):
     get_post(id)
-    db = get_db()
-    db.execute("DELETE FROM post WHERE id = ?", (id,))
-    db.commit()
+    delete_post_by_id(id)
     return redirect(url_for("blog.index"))
