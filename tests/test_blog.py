@@ -26,6 +26,28 @@ def test_index(client, auth):
     assert b'href="/?page=2"' in response.data
 
 
+def test_index_tags(client, auth):
+    response = client.get("/")
+    assert b"Most frequent tags" in response.data
+    assert b'href="/tag/test"' in response.data
+    assert b'href="/tag/dhaka"' in response.data
+    assert b'href="/tag/blog"' in response.data
+
+
+def test_tag_page(client):
+    response = client.get("/tag/test")
+    assert response.status_code == 200
+    assert b'href="/1/detail"' in response.data
+    assert b'href="/2/detail"' in response.data
+    assert b'href="/3/detail"' in response.data
+
+
+def test_tag_page_no_post(client):
+    response = client.get("/tag/tagnotpresent")
+    assert response.status_code == 200
+    assert b"No posts found" in response.data
+
+
 def test_detail_with_image(client, auth):
     # test 404, and 200 with both logged in and out
     assert client.get("/393/detail").status_code == 404
@@ -55,6 +77,14 @@ def test_detail_reactions(client, auth):
     print(resp.data)
     assert b'href="/reactions/post/2/like"' in resp.data
     assert b'href="/reactions/post/2/unlike"' in resp.data
+
+
+def test_detail_tag_present(client, auth):
+    resp = client.get("/1/detail")
+    assert resp.status_code == 200
+    assert b'href="/tag/dhaka"' in resp.data
+    assert b'href="/tag/test"' in resp.data
+    assert b'href="/tag/blog"' in resp.data
 
 
 def test_detail_reaction_count(client, auth):
@@ -104,6 +134,28 @@ def test_create(client, auth, app):
         db = get_db()
         count = db.execute("SELECT COUNT(id) FROM post").fetchone()[0]
         assert count == current_count + 1
+
+
+def test_create_with_tags(client, auth, app):
+    with app.app_context():
+        db = get_db()
+        post_count_before = db.execute("SELECT COUNT(id) FROM post").fetchone()[0]
+        tag_count_before = db.execute("SELECT COUNT(id) FROM tag").fetchone()[0]
+
+    auth.login()
+    assert client.get("/create").status_code == 200
+    client.post(
+        "/create", data={"title": "created", "body": "", "tags": "java scala python"}
+    )
+
+    with app.app_context():
+        db = get_db()
+        post_count = db.execute("SELECT COUNT(id) FROM post").fetchone()[0]
+        tag_count = db.execute("SELECT COUNT(id) FROM tag").fetchone()[0]
+
+    assert post_count == post_count_before + 1
+    # count should increase by two, since 'python' is an existing tag
+    assert tag_count == tag_count_before + 2
 
 
 def test_create_with_image(client, auth, app):
@@ -160,6 +212,24 @@ def test_update(client, auth, app):
         post = db.execute("SELECT * FROM post WHERE id = 1").fetchone()
         assert post["title"] == "updated"
         assert post["image_path"] == "test_image.jpg"  # should not be updated
+
+
+def test_update_with_tags(client, auth, app):
+    auth.login()
+    assert client.get("/1/update").status_code == 200
+    client.post(
+        "/1/update",
+        data={"title": "updated", "body": "", "tags": "java python sql go scala"},
+    )
+
+    with app.app_context():
+        db = get_db()
+        post = db.execute("SELECT * FROM post WHERE id = 1").fetchone()
+        assert post["title"] == "updated"
+        tag_count = db.execute(
+            "SELECT COUNT(tag_id) FROM post_tag WHERE entity_id = ?", (1,)
+        ).fetchone()[0]
+    assert tag_count == 5
 
 
 def test_update_with_image(client, auth, app):

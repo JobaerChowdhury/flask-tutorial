@@ -9,13 +9,13 @@ Building a sample blog platform by following the official tutorial of the Flask 
 
 - [ ] Making production ready  
 - [ ] Comments.  
-- [ ] Tags. Clicking a tag shows all the posts with that tag.  
 - [ ] A search box that filters the index page by name.  
 - [ ] Format posts using Markdown.  
 - [ ] An RSS feed of new posts.  
 
 ### In Progress
 
+- [ ] Tags. Clicking a tag shows all the posts with that tag.  
 
 ### Done ✓
 

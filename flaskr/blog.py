@@ -25,6 +25,11 @@ from flaskr.db_service import (
     update_post,
     update_image_by_post_id,
     delete_post_by_id,
+    update_tags_by_post_id,
+    get_tags_by_post,
+    get_posts_by_tag,
+    get_top_tags,
+    count_posts_by_tag,
 )
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
@@ -52,7 +57,36 @@ def index():
     else:
         pages = q + 1
 
-    return render_template("blog/index.html", posts=posts, pages=pages)
+    tags = get_top_tags()
+
+    return render_template("blog/index.html", posts=posts, tags=tags, pages=pages)
+
+
+@bp.route("/tag/<name>")
+def tag(name):
+    page = _get_page(request)
+    limit = PAGE_SIZE
+    offset = PAGE_SIZE * page
+
+    posts = get_posts_by_tag(name, limit, offset)
+    size = count_posts_by_tag(name)
+
+    (q, r) = divmod(size, PAGE_SIZE)
+    if r == 0:
+        pages = q
+    else:
+        pages = q + 1
+
+    tags = get_top_tags()
+
+    return render_template(
+        "blog/index.html",
+        posts=posts,
+        pages=pages,
+        tags=tags,
+        tag_name=name,
+        tag_page=True,
+    )
 
 
 def _get_page(request):
@@ -77,6 +111,11 @@ def create():
     if request.method == "POST":
         title = request.form["title"]
         body = request.form["body"]
+
+        tags_data = None
+        if "tags" in request.form:
+            tags_data = request.form["tags"]
+
         error = None
 
         if not title:
@@ -95,10 +134,14 @@ def create():
             else:
                 error = "File is not allowed."
 
+        tags = []
+        if tags_data:
+            tags = tags_data.split(" ")
+
         if error is not None:
             flash(error)
         else:
-            insert_post(title, body, filename, g.user["id"])
+            insert_post(title, body, filename, g.user["id"], tags=tags)
             return redirect(url_for("blog.index"))
 
     return render_template("blog/create.html")
@@ -118,7 +161,17 @@ def get_post(id, check_author=True):
     if check_author and post["author_id"] != g.user["id"]:
         abort(403)
 
-    return post
+    dictpost = dict(post)
+
+    tags = get_tags_by_post(id)
+    dictpost["tags"] = tags
+    dictpost["tags_edit"] = tags_space_separated(tags)
+
+    return dictpost
+
+
+def tags_space_separated(tags):
+    return " ".join(map(lambda t: t["name"], tags))
 
 
 @bp.route("/<int:id>/update", methods=("GET", "POST"))
@@ -128,6 +181,9 @@ def update(id):
     if request.method == "POST":
         title = request.form["title"]
         body = request.form["body"]
+        tags_data = None
+        if "tags" in request.form:
+            tags_data = request.form["tags"]
         error = None
 
         if not title:
@@ -145,12 +201,16 @@ def update(id):
                 file.save(os.path.join(current_app.config["UPLOAD_DIR"], filename))
             else:
                 error = "File is not allowed."
-        print(filename)
+
+        tags = []
+        if tags_data:
+            tags = tags_data.split(" ")
 
         if error is not None:
             flash(error)
         else:
             update_post(title, body, id)
+            update_tags_by_post_id(id, tags)
             if filename:
                 if post["image_path"] is None or filename != post["image_path"]:
                     update_image_by_post_id(filename, id)

@@ -11,8 +11,8 @@ VALUES
 INSERT INTO post (title, body, author_id, created)
 VALUES
   ('post without image 1', 'test' || x'0a' || 'body without image', 1, '2019-01-01 00:00:00'),
-  ('post without image 2', 'test' || x'0a' || 'body without image', 1, '2019-01-01 00:00:00'),
-  ('post without image 3', 'test' || x'0a' || 'body without image', 1, '2019-01-01 00:00:00'),
+  ('post without image 2', 'test' || x'0a' || 'body without image', 1, '2019-04-01 00:00:00'),
+  ('post without image 3', 'test' || x'0a' || 'body without image', 1, '2019-05-01 00:00:00'),
   ('post without image 4', 'test' || x'0a' || 'body without image', 1, '2019-01-01 00:00:00'),
   ('post without image 5', 'test' || x'0a' || 'body without image', 1, '2019-01-01 00:00:00'),
   ('post without image 6', 'test' || x'0a' || 'body without image', 1, '2019-01-01 00:00:00'),
@@ -29,3 +29,18 @@ VALUES
 ("like", 3, 1), 
 ("unlike", 1, 1), 
 ("unlike", 2, 1);
+
+INSERT INTO tag (name) VALUES 
+('test'), ('dhaka'), ('blog'), ('new'), ('python'), ('flask');
+
+INSERT INTO post_tag (tag_id, entity_id) 
+VALUES
+(1, 1), 
+(1, 2), 
+(1, 3), 
+(2, 1), 
+(3, 1), 
+(4, 3), 
+(5, 4), 
+(6, 5), 
+(2, 6);

@@ -61,6 +61,10 @@ header .action {
     padding: 0.5rem;
 }
 
+header a.action {
+    padding-left: 0;
+}
+
 .content {
     padding: 0 1rem 1rem;
 }
@@ -110,6 +114,27 @@ header .action {
 .post .reactions {
     margin-top: 40px;
     font-size: 0.8em;
+}
+
+.post .tags {
+    margin-top: 40px;
+    font-size: 0.9em;
+}
+
+.content .tags {
+    margin-top: 40px;
+}
+
+.content .tags h3 {
+    color: green;
+}
+
+.content .tags .tag {
+    padding-right: 10px;
+}
+
+.content .tags a {
+    color: green;
 }
 
 .pagination {
