@@ -46,10 +46,12 @@ def create_app(test_config=None):
     from . import auth
     from . import blog
     from . import reaction
+    from . import custom_filters
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(blog.bp)
     app.register_blueprint(reaction.bp)
     app.add_url_rule("/", "index")
+    custom_filters.init_app(app)
 
     return app

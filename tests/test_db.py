@@ -27,3 +27,16 @@ def test_init_db_command(runner, monkeypatch):
     result = runner.invoke(args=["init-db"])
     assert "Initialized" in result.output
     assert Recorder.called
+
+
+def test_load_test_data_command(runner, monkeypatch):
+    class Recorder(object):
+        called = False
+
+    def fake_load_test_data():
+        Recorder.called = True
+
+    monkeypatch.setattr("flaskr.db.load_test_data", fake_load_test_data)
+    result = runner.invoke(args=["load-test-data"])
+    assert "Loaded some test data" in result.output
+    assert Recorder.called
