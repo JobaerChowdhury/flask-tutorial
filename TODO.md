@@ -7,18 +7,19 @@ Building a sample blog platform by following the official tutorial of the Flask 
 
 ### Todo
 
-- [ ] Making production ready  
-- [ ] Comments.  
 - [ ] A search box that filters the index page by name.  
-- [ ] Format posts using Markdown.  
+- [ ] Using SqlAlchemy instead of raw SQL  
 - [ ] An RSS feed of new posts.  
+- [ ] Comments.  
+- [ ] Making production ready  
 
 ### In Progress
 
-- [ ] Tags. Clicking a tag shows all the posts with that tag.  
 
 ### Done ✓
 
+- [x] Format posts using Markdown.  
+- [x] Tags. Clicking a tag shows all the posts with that tag.  
 - [x] Paged display. Only show 5 posts per page.  
 - [x] Like / unlike a post.  
 - [x] Upload an image to go along with a post.  
