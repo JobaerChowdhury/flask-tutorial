@@ -44,39 +44,39 @@ def allowed_file(filename):
 
 @bp.route("/")
 def index():
-    page = _get_page(request)
-    limit = PAGE_SIZE
-    offset = PAGE_SIZE * page
+    limit, offset = calculate_limit_offset()
+    size = count_posts()
+    pages = calculate_pages(size, PAGE_SIZE)
 
     posts = get_posts(limit, offset)
-    size = count_posts()
-
-    (q, r) = divmod(size, PAGE_SIZE)
-    if r == 0:
-        pages = q
-    else:
-        pages = q + 1
-
     tags = get_top_tags()
 
     return render_template("blog/index.html", posts=posts, tags=tags, pages=pages)
 
 
-@bp.route("/tag/<name>")
-def tag(name):
-    page = _get_page(request)
-    limit = PAGE_SIZE
-    offset = PAGE_SIZE * page
-
-    posts = get_posts_by_tag(name, limit, offset)
-    size = count_posts_by_tag(name)
-
-    (q, r) = divmod(size, PAGE_SIZE)
+def calculate_pages(size, page_size):
+    (q, r) = divmod(size, page_size)
     if r == 0:
         pages = q
     else:
         pages = q + 1
+    return pages
 
+
+def calculate_limit_offset():
+    page = _get_page(request)
+    limit = PAGE_SIZE
+    offset = PAGE_SIZE * page
+    return limit, offset
+
+
+@bp.route("/tag/<name>")
+def tag(name):
+    limit, offset = calculate_limit_offset()
+    size = count_posts_by_tag(name)
+    pages = calculate_pages(size, PAGE_SIZE)
+
+    posts = get_posts_by_tag(name, limit, offset)
     tags = get_top_tags()
 
     return render_template(
