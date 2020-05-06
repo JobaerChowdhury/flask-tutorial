@@ -1,6 +1,9 @@
 import pytest
 from flask import g, session
-from flaskr.db import get_db
+from flaskr.database import db
+
+from flaskr.models import User
+from flaskr.db_service import get_user_by_username
 
 
 def test_register(client, app):
@@ -9,10 +12,8 @@ def test_register(client, app):
     assert "/auth/login" in response.headers["Location"]
 
     with app.app_context():
-        assert (
-            get_db().execute("select * from user where username = 'a'").fetchone()
-            is not None
-        )
+        user_a = get_user_by_username("a")
+        assert user_a is not None
 
 
 @pytest.mark.parametrize(
@@ -38,7 +39,7 @@ def test_login(client, auth):
     with client:
         client.get("/")
         assert session["user_id"] == 1
-        assert g.user["username"] == "test"
+        assert g.user.username == "test"
 
 
 @pytest.mark.parametrize(
@@ -50,8 +51,6 @@ def test_login(client, auth):
 )
 def test_login_validate_input(auth, username, password, message):
     response = auth.login(username, password)
-    print(message)
-    print(response.data)
     assert message in response.data
 
 

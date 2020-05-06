@@ -8,13 +8,15 @@ Building a sample blog platform by following the official tutorial of the Flask 
 ### Todo
 
 - [ ] A search box that filters the index page by name.  
-- [ ] Using SqlAlchemy instead of raw SQL  
 - [ ] An RSS feed of new posts.  
 - [ ] Comments.  
 - [ ] Making production ready  
+- [ ] update doc mentioning improvements  
+- [ ] Make repo public  
 
 ### In Progress
 
+- [ ] Using SqlAlchemy instead of raw SQL  
 
 ### Done ✓
 

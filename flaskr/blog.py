@@ -141,7 +141,7 @@ def create():
         if error is not None:
             flash(error)
         else:
-            insert_post(title, body, filename, g.user["id"], tags=tags)
+            insert_post(title, body, filename, g.user.id, tags=tags)
             return redirect(url_for("blog.index"))
 
     return render_template("blog/create.html")
@@ -158,16 +158,11 @@ def get_post(id, check_author=True):
     if post is None:
         abort(404, "Post id {0} doesn't exist".format(id))
 
-    if check_author and post["author_id"] != g.user["id"]:
+    if check_author and post.author_id != g.user.id:
         abort(403)
 
-    dictpost = dict(post)
-
-    tags = get_tags_by_post(id)
-    dictpost["tags"] = tags
-    dictpost["tags_edit"] = tags_space_separated(tags)
-
-    return dictpost
+    # tags_edit .. do something
+    return post
 
 
 def tags_space_separated(tags):
@@ -212,7 +207,7 @@ def update(id):
             update_post(title, body, id)
             update_tags_by_post_id(id, tags)
             if filename:
-                if post["image_path"] is None or filename != post["image_path"]:
+                if post.image_path is None or filename != post.image_path:
                     update_image_by_post_id(filename, id)
             return redirect(url_for("blog.index"))
     return render_template("blog/update.html", post=post)

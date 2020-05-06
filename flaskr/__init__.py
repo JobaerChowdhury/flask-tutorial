@@ -9,10 +9,12 @@ IMAGES_DIR = "images"
 def create_app(test_config=None):
     # create and cofigure the app
     app = Flask(__name__, instance_relative_config=True)
+    DATABASE = os.path.join(app.instance_path, "flaskr.sqlite")
     app.config.from_mapping(
         SECRET_KEY="dev",
         UPLOAD_DIR=(os.path.join(app.instance_path, IMAGES_DIR)),
-        DATABASE=(os.path.join(app.instance_path, "flaskr.sqlite")),
+        SQLALCHEMY_DATABASE_URI="sqlite:///" + DATABASE,
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
     )
 
     if test_config is None:
@@ -39,9 +41,10 @@ def create_app(test_config=None):
     def hello():
         return "Hello, World!"
 
-    from . import db
+    from . import database
 
-    db.init_app(app)
+    database.db.init_app(app)
+    database.init_app(app)
 
     from . import auth
     from . import blog

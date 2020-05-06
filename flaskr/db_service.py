@@ -1,61 +1,49 @@
 from collections import OrderedDict
 
 from werkzeug.security import check_password_hash, generate_password_hash
-from flaskr.db import get_db
+from flaskr.database import db
+from flaskr.models import Tag, Post, User, Reaction, post_tag
+from sqlalchemy import func, desc
 
 
 def get_user_by_id(user_id):
-    return get_db().execute("SELECT * FROM user where id = ?", (user_id,)).fetchone()
+    return User.query.get(user_id)
 
 
 def get_user_by_username(username):
-    return (
-        get_db()
-        .execute("SELECT * FROM user WHERE username = ?", (username,))
-        .fetchone()
-    )
+    return User.query.filter_by(username=username).first()
 
 
 def insert_user(username, password):
-    db = get_db()
-    db.execute(
-        "INSERT INTO user (username, password) VALUES (?, ?)",
-        (username, generate_password_hash(password)),
-    )
-    db.commit()
+    user = User(username=username, password=generate_password_hash(password))
+    db.session.add(user)
+    db.session.commit()
 
 
 def insert_or_update_reaction(name, user_id, post_id):
-    db = get_db()
-    existing = db.execute(
-        "SELECT name FROM reaction WHERE entity_id = ? and user_id = ?",
-        (post_id, user_id),
-    ).fetchone()
+    reaction = (
+        db.session.query(Reaction).filter_by(entity_id=post_id, user_id=user_id).first()
+    )
 
-    if existing is None:
-        db.execute(
-            "INSERT INTO reaction (name, user_id, entity_id) VALUES (?, ?, ?)",
-            (name, user_id, post_id),
-        )
+    if reaction is None:
+        db.session.add(Reaction(name=name, entity_id=post_id, user_id=user_id))
     else:
-        db.execute(
-            "UPDATE reaction SET name = ? WHERE user_id = ? AND entity_id = ?",
-            (name, user_id, post_id),
-        )
-    db.commit()
+        reaction.name = name
+    db.session.commit()
 
 
-def get_reactions_by_entityid(etity_id, reactions=[]):
-    db = get_db()
-    results = db.execute(
-        "SELECT name, COUNT(name) AS count FROM reaction WHERE entity_id = ? GROUP BY name",
-        (etity_id,),
-    ).fetchall()
+def get_reactions_by_entityid(entity_id, reactions=[]):
+    results = (
+        db.session.query(Reaction.name, func.count(Reaction.name))
+        .filter_by(entity_id=entity_id)
+        .group_by(Reaction.name)
+        .all()
+    )
+    print(results)
+
     resp = dict()
-    for row in results:
-        k = row["name"]
-        v = row["count"]
-        resp[k] = v
+    for (name, count) in results:
+        resp[name] = count
 
     for r in reactions:
         if r not in resp:
@@ -65,37 +53,29 @@ def get_reactions_by_entityid(etity_id, reactions=[]):
 
 
 def get_posts(limit, offset):
-    db = get_db()
-    posts = db.execute(
-        "SELECT p.id, title, body, created, author_id, username"
-        " FROM post p JOIN user u ON p.author_id = u.id"
-        " ORDER BY created DESC"
-        " LIMIT ? OFFSET ?",
-        (limit, offset),
-    ).fetchall()
+    posts = (
+        db.session.query(Post)
+        .order_by(desc(Post.created))
+        .slice(offset, (limit + 1))
+        .all()
+    )
     return posts
 
 
 def count_posts():
-    db = get_db()
-    total = db.execute("SELECT COUNT(id) from post").fetchone()[0]
-    return total
+    return db.session.query(func.count(Post.id)).scalar()
 
 
 def insert_post(title, body, filename, user_id, tags=[]):
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute(
-        "INSERT INTO post (title, body, image_path, author_id) VALUES (?, ?, ?, ?)",
-        (title, body, filename, user_id),
-    )
-    post_id = cursor.lastrowid
-    db.commit()
+    post = Post(title=title, body=body, image_path=filename, author_id=user_id)
+    db.session.add(post)
+    db.session.commit()
 
-    tag_ids = get_ids_or_insret_tags(tags)
-    attach_tags_with_post(post_id, tag_ids)
+    if len(tags) > 0:
+        tag_ids = get_ids_or_insret_tags(tags)
+        attach_tags_with_post(post.id, tag_ids)
 
-    return post_id
+    return post.id
 
 
 def get_ids_or_insret_tags(tags):
@@ -108,31 +88,20 @@ def get_ids_or_insret_tags(tags):
 
 
 def get_post_by_id(id):
-    return (
-        get_db()
-        .execute(
-            "SELECT p.id, title, body, image_path, created, author_id, username"
-            " FROM post p JOIN user u ON p.author_id = u.id"
-            " WHERE p.id = ?",
-            (id,),
-        )
-        .fetchone()
-    )
+    return Post.query.get(id)
 
 
 def get_tag_id(name):
-    db = get_db()
-    tag_id = db.execute("SELECT id FROM tag  WHERE name = ?", (name,)).fetchone()
-    if tag_id is not None:
-        return tag_id["id"]
+    tag = Tag.query.filter_by(name=name).first()
+    if tag is not None:
+        return tag.id
     else:
         return None
 
 
 def insert_tag(name):
-    db = get_db()
-    db.execute("INSERT INTO tag (name) VALUES (?)", (name,))
-    db.commit()
+    db.session.add(Tag(name=name))
+    db.session.commit()
 
 
 def get_or_insert_tag(name):
@@ -145,95 +114,87 @@ def get_or_insert_tag(name):
 
 
 def attach_tags_with_post(post_id, tag_ids):
-    db = get_db()
+    post = Post.query.get(post_id)
     for tag_id in tag_ids:
-        db.execute(
-            "INSERT INTO post_tag (tag_id, entity_id) values (?, ?) ", (tag_id, post_id)
-        )
-    db.commit()
+        tag = Tag.query.get(tag_id)
+        if tag is not None:
+            post.tags.append(tag)
+    db.session.add(post)
+    db.session.commit()
 
 
 def update_post(title, body, id):
-    db = get_db()
-    db.execute("UPDATE post SET title = ?, body = ?" " WHERE id = ?", (title, body, id))
-    db.commit()
+    post = Post.query.get(id)
+    post.title = title
+    post.body = body
+    db.session.commit()
 
 
 def update_tags_by_post_id(post_id, tags):
-    db = get_db()
-    db.execute("DELETE FROM post_tag WHERE entity_id = ?", (post_id,))
-    db.commit()
+    post = db.session.query(Post).get(post_id)
+    post.tags = []
+    db.session.commit()
+
     tag_ids = get_ids_or_insret_tags(tags)
-    attach_tags_with_post(post_id, tag_ids)
+    attach_tags_with_post(post.id, tag_ids)
 
 
 def update_image_by_post_id(filename, id):
-    db = get_db()
-    db.execute("UPDATE post SET image_path = ?" " WHERE id = ?", (filename, id))
-    db.commit()
+    post = Post.query.get(id)
+    post.image_path = filename
+    db.session.commit()
 
 
 def delete_post_by_id(id):
-    db = get_db()
-    db.execute("DELETE FROM post WHERE id = ?", (id,))
-    db.commit()
+    db.session.query(Post).filter(Post.id == id).delete()
+    db.session.commit()
 
 
 def get_tags_by_post(id):
     # return a list of tags
-    db = get_db()
-    tag_rows = db.execute(
-        "SELECT t.id, name FROM tag t JOIN post_tag pt ON t.id = pt.tag_id WHERE pt.entity_id = ?",
-        (id,),
-    ).fetchall()
-    tags = []
-    for r in tag_rows:
-        tags.append({"id": r["id"], "name": r["name"]})
-    return tags
+    post = Post.query.get(id)
+    return post.tags
 
 
 def count_posts_by_tag(tagname):
-    db = get_db()
-    total = db.execute(
-        "SELECT COUNT(p.id)"
-        " FROM post p JOIN user u ON p.author_id = u.id"
-        " WHERE p.id IN (SELECT pt.entity_id FROM tag t JOIN post_tag pt ON t.id = pt.tag_id WHERE t.name = ?)",
-        (tagname,),
-    ).fetchone()[0]
-    return total
+    tag = db.session.query(Tag).filter_by(name=tagname).first()
+    if tag is not None:
+        return len(tag.posts)
+    else:
+        return 0
 
 
 def get_posts_by_tag(tagname, limit=5, offset=0):
     # given a tag, return the posts, recent first, with limit and offset
-    db = get_db()
-    posts = db.execute(
-        "SELECT p.id, title, body, created, author_id, username"
-        " FROM post p JOIN user u ON p.author_id = u.id"
-        " WHERE p.id IN (SELECT pt.entity_id FROM tag t JOIN post_tag pt ON t.id = pt.tag_id WHERE t.name = ?)"
-        " ORDER BY created DESC"
-        " LIMIT ? OFFSET ?",
-        (tagname, limit, offset),
-    ).fetchall()
-    return posts
+    return (
+        Post.query.filter(Post.tags.any(name=tagname))
+        .order_by(desc(Post.created))
+        .slice(offset, (limit + 1))
+        .all()
+    )
 
 
 def get_top_tags(limit=10):
     # return the top tags, ordered by number of posts tagged with
-    db = get_db()
-    tags = OrderedDict()
-    result = db.execute(
-        "SELECT t.name, tg.total"
-        " FROM tag t JOIN"
-        "  (SELECT tag_id, count(entity_id) AS total"
-        "    FROM post_tag"
-        " GROUP BY tag_id) tg"
-        " ON t.id = tg.tag_id"
-        " ORDER BY tg.total DESC"
-        " limit ?",
-        (limit,),
-    ).fetchall()
+    subq = (
+        db.session.query(
+            post_tag.c.tag_id, func.count(post_tag.c.post_id).label("total")
+        )
+        .group_by(post_tag.c.tag_id)
+        .subquery()
+    )
 
-    for row in result:
-        tags[row["name"]] = row["total"]
+    rows = (
+        db.session.query(Tag, subq.c.total)
+        .join(subq, Tag.id == subq.c.tag_id)
+        .order_by(desc(subq.c.total))
+        .limit(limit)
+        .all()
+    )
+
+    tags = OrderedDict()
+
+    for (tag, total) in rows:
+        tags[tag.name] = total
 
     return tags

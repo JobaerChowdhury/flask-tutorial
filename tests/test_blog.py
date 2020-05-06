@@ -1,7 +1,10 @@
 import os
 import io
 import pytest
-from flaskr.db import get_db
+
+from flaskr.database import db
+from flaskr.models import Post, Tag, User
+from sqlalchemy import func
 
 
 image_file_path = os.path.join(os.path.dirname(__file__), "sample_image.png")
@@ -16,6 +19,7 @@ def test_index(client, auth):
 
     auth.login()
     response = client.get("/")
+    assert response.status_code == 200
     assert b"Log Out" in response.data
     assert b"test title" in response.data
     assert b"by test on 2020-01-01" in response.data
@@ -38,8 +42,8 @@ def test_tag_page(client):
     response = client.get("/tag/test")
     assert response.status_code == 200
     assert b'href="/1/detail"' in response.data
-    assert b'href="/2/detail"' in response.data
     assert b'href="/3/detail"' in response.data
+    assert b'href="/5/detail"' in response.data
 
 
 def test_tag_page_no_post(client):
@@ -55,7 +59,7 @@ def test_detail_with_image(client, auth):
     resp = client.get("/1/detail")
     assert resp.status_code == 200
     assert b"test title" in resp.data
-    assert b"test\nbody" in resp.data
+    assert b"test body without image" in resp.data
     assert b'src="/uploads/test_image.jpg"' in resp.data
 
     auth.login()
@@ -103,9 +107,9 @@ def test_login_required(client, path):
 def test_author_required(app, client, auth):
     # change the post author to another user
     with app.app_context():
-        db = get_db()
-        db.execute("UPDATE post SET author_id = 2 WHERE id = 1")
-        db.commit()
+        post = Post.query.get(1)
+        post.author_id = 2
+        db.session.commit()
 
     auth.login()
     # current user can't modify other user's post
@@ -123,24 +127,21 @@ def test_exists_required(client, auth, path):
 
 def test_create(client, auth, app):
     with app.app_context():
-        db = get_db()
-        current_count = db.execute("SELECT COUNT(id) FROM post").fetchone()[0]
+        current_count = db.session.query(func.count(Post.id)).scalar()
 
     auth.login()
     assert client.get("/create").status_code == 200
     client.post("/create", data={"title": "created", "body": ""})
 
     with app.app_context():
-        db = get_db()
-        count = db.execute("SELECT COUNT(id) FROM post").fetchone()[0]
+        count = db.session.query(func.count(Post.id)).scalar()
         assert count == current_count + 1
 
 
 def test_create_with_tags(client, auth, app):
     with app.app_context():
-        db = get_db()
-        post_count_before = db.execute("SELECT COUNT(id) FROM post").fetchone()[0]
-        tag_count_before = db.execute("SELECT COUNT(id) FROM tag").fetchone()[0]
+        post_count_before = db.session.query(func.count(Post.id)).scalar()
+        tag_count_before = db.session.query(func.count(Tag.id)).scalar()
 
     auth.login()
     assert client.get("/create").status_code == 200
@@ -149,9 +150,8 @@ def test_create_with_tags(client, auth, app):
     )
 
     with app.app_context():
-        db = get_db()
-        post_count = db.execute("SELECT COUNT(id) FROM post").fetchone()[0]
-        tag_count = db.execute("SELECT COUNT(id) FROM tag").fetchone()[0]
+        post_count = db.session.query(func.count(Post.id)).scalar()
+        tag_count = db.session.query(func.count(Tag.id)).scalar()
 
     assert post_count == post_count_before + 1
     # count should increase by two, since 'python' is an existing tag
@@ -160,17 +160,16 @@ def test_create_with_tags(client, auth, app):
 
 def test_create_with_image(client, auth, app):
     with app.app_context():
-        db = get_db()
-        current_count = db.execute("SELECT COUNT(id) FROM post").fetchone()[0]
+        current_count = db.session.query(func.count(Post.id)).scalar()
 
     auth.login()
     create_with_image(client, "article_image.png")
 
     assert client.get("/create").status_code == 200
     with app.app_context():
-        db = get_db()
-        count = db.execute("SELECT COUNT(id) FROM post").fetchone()[0]
-        assert count == current_count + 1
+        count = db.session.query(func.count(Post.id)).scalar()
+
+    assert count == current_count + 1
 
 
 def test_create_invalid_image(client, auth, app):
@@ -208,10 +207,9 @@ def test_update(client, auth, app):
     client.post("/1/update", data={"title": "updated", "body": ""})
 
     with app.app_context():
-        db = get_db()
-        post = db.execute("SELECT * FROM post WHERE id = 1").fetchone()
-        assert post["title"] == "updated"
-        assert post["image_path"] == "test_image.jpg"  # should not be updated
+        post = Post.query.get(1)
+        assert post.title == "updated"
+        assert post.image_path == "test_image.jpg"  # should not be updated
 
 
 def test_update_with_tags(client, auth, app):
@@ -223,12 +221,9 @@ def test_update_with_tags(client, auth, app):
     )
 
     with app.app_context():
-        db = get_db()
-        post = db.execute("SELECT * FROM post WHERE id = 1").fetchone()
-        assert post["title"] == "updated"
-        tag_count = db.execute(
-            "SELECT COUNT(tag_id) FROM post_tag WHERE entity_id = ?", (1,)
-        ).fetchone()[0]
+        post = Post.query.get(1)
+        assert post.title == "updated"
+        tag_count = len(post.tags)
     assert tag_count == 5
 
 
@@ -243,10 +238,9 @@ def test_update_with_image(client, auth, app):
     client.post("/1/update", data=data, content_type="multipart/form-data")
 
     with app.app_context():
-        db = get_db()
-        post = db.execute("SELECT * FROM post WHERE id = 1").fetchone()
-        assert post["title"] == "updated"
-        assert post["image_path"] == "new_image.png"  # should be updated
+        post = Post.query.get(1)
+        assert post.title == "updated"
+        assert post.image_path == "new_image.png"  # should be updated
 
 
 def test_update_post_adding_image(client, auth, app):
@@ -260,10 +254,9 @@ def test_update_post_adding_image(client, auth, app):
     client.post("/2/update", data=data, content_type="multipart/form-data")
 
     with app.app_context():
-        db = get_db()
-        post = db.execute("SELECT * FROM post WHERE id = 2").fetchone()
-        assert post["title"] == "updated"
-        assert post["image_path"] == "new_image.png"  # should be updated
+        post = Post.query.get(2)
+        assert post.title == "updated"
+        assert post.image_path == "new_image.png"  # should be updated
 
 
 @pytest.mark.parametrize("path", ("/create", "/1/update",))
@@ -279,6 +272,5 @@ def test_delete(client, auth, app):
     assert response.headers["Location"] == "http://localhost/"
 
     with app.app_context():
-        db = get_db()
-        post = db.execute("SELECT * FROM post WHERE id = 1").fetchone()
+        post = Post.query.get(1)
         assert post is None
