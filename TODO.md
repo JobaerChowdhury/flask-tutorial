@@ -16,10 +16,10 @@ Building a sample blog platform by following the official tutorial of the Flask 
 
 ### In Progress
 
-- [ ] Using SqlAlchemy instead of raw SQL  
 
 ### Done ✓
 
+- [x] Using SqlAlchemy instead of raw SQL  
 - [x] Format posts using Markdown.  
 - [x] Tags. Clicking a tag shows all the posts with that tag.  
 - [x] Paged display. Only show 5 posts per page.  
