@@ -4,11 +4,6 @@ import shutil
 
 import pytest
 from flaskr import create_app
-from flaskr.db import get_db, init_db
-
-db_file_path = os.path.join(os.path.dirname(__file__), "data.sql")
-with open(db_file_path, "rb") as f:
-    _data_sql = f.read().decode("utf8")
 
 
 class AuthActions(object):
@@ -29,11 +24,21 @@ def app():
     db_fd, db_path = tempfile.mkstemp()
     upload_path = tempfile.mkdtemp()
 
-    app = create_app({"TESTING": True, "DATABASE": db_path, "UPLOAD_DIR": upload_path})
+    DATABASE = db_path
+    app = create_app(
+        {
+            "TESTING": True,
+            "SQLALCHEMY_DATABASE_URI": "sqlite:///" + DATABASE,
+            "SQLALCHEMY_TRACK_MODIFICATIONS": False,
+            "UPLOAD_DIR": upload_path,
+        }
+    )
 
     with app.app_context():
+        from flaskr.database import init_db, load_test_data
+
         init_db()
-        get_db().executescript(_data_sql)
+        load_test_data()
 
     yield app
 

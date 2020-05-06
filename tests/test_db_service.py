@@ -18,12 +18,13 @@ def test_tags_present(app):
     with app.app_context():
         tags = get_tags_by_post(1)
 
-    assert len(tags) == 3
-    values = map(lambda x: x["name"], tags)
+    assert len(tags) == 4
+    values = map(lambda t: t.name, tags)
 
     assert "test" in values
     assert "dhaka" in values
     assert "blog" in values
+    assert "python" in values
 
 
 def test_get_posts_by_tag(app):
@@ -32,9 +33,9 @@ def test_get_posts_by_tag(app):
 
     assert len(posts) == 3
     # should be fetched in this order, recent first
-    assert posts[0]["id"] == 1
-    assert posts[1]["id"] == 3
-    assert posts[2]["id"] == 2
+    assert posts[0].id == 1
+    assert posts[1].id == 3
+    assert posts[2].id == 5
 
 
 def test_get_top_tags(app):
@@ -43,7 +44,9 @@ def test_get_top_tags(app):
 
     assert_tag(tags, "test", 3)
     assert_tag(tags, "dhaka", 2)
-    assert_tag(tags, "blog", 1)
+    assert_tag(tags, "blog", 2)
+    assert_tag(tags, "python", 2)
+    assert_tag(tags, "flask", 1)
 
 
 def assert_tag(container, name, count):

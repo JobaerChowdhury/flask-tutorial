@@ -14,7 +14,7 @@ REACTIONS = ("like", "unlike")
 @login_required
 def like_post(post_id):
     # like a post
-    user_id = g.user["id"]
+    user_id = g.user.id
     insert_or_update_reaction(REACTIONS[0], user_id, post_id)
     return redirect(url_for("blog.detail", post_id=post_id))
 
@@ -23,7 +23,7 @@ def like_post(post_id):
 @login_required
 def unlike_post(post_id):
     # unlike a post
-    user_id = g.user["id"]
+    user_id = g.user.id
     insert_or_update_reaction(REACTIONS[1], user_id, post_id)
 
     return redirect(url_for("blog.detail", post_id=post_id))
