@@ -1,6 +1,5 @@
 import pytest
 import json
-from flaskr.db import get_db
 
 
 def test_like(auth, client):

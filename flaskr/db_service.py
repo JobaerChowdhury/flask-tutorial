@@ -39,7 +39,6 @@ def get_reactions_by_entityid(entity_id, reactions=[]):
         .group_by(Reaction.name)
         .all()
     )
-    print(results)
 
     resp = dict()
     for (name, count) in results:
