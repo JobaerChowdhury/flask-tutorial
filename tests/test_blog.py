@@ -30,6 +30,25 @@ def test_index(client, auth):
     assert b'href="/?page=2"' in response.data
 
 
+def test_second_page(client):
+    response = client.get("/?page=1")
+    assert response.status_code == 200
+
+    print(response.data)
+    assert b"Log In" in response.data
+    assert b"Register" in response.data
+
+    assert b'href="/?page=0"' in response.data
+    assert b'href="/?page=1"' in response.data
+    assert b'href="/?page=2"' in response.data
+
+    assert b'href="/6/detail"' in response.data
+    assert b'href="/7/detail"' in response.data
+    assert b'href="/8/detail"' in response.data
+    assert b'href="/9/detail"' in response.data
+    assert b'href="/10/detail"' in response.data
+
+
 def test_index_tags(client, auth):
     response = client.get("/")
     assert b"Most frequent tags" in response.data

@@ -56,7 +56,7 @@ def get_posts(limit, offset):
     posts = (
         db.session.query(Post)
         .order_by(desc(Post.created))
-        .slice(offset, (limit + 1))
+        .slice(offset, offset + limit + 1)
         .all()
     )
     return posts
@@ -169,7 +169,7 @@ def get_posts_by_tag(tagname, limit=5, offset=0):
     return (
         Post.query.filter(Post.tags.any(name=tagname))
         .order_by(desc(Post.created))
-        .slice(offset, (limit + 1))
+        .slice(offset, (offset + limit + 1))
         .all()
     )
 
