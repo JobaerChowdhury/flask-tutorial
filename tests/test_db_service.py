@@ -2,15 +2,16 @@ import pytest
 
 from flaskr.db_service import (
     get_tags_by_post,
+    get_tag_by_name,
     get_posts_by_tag,
     get_top_tags,
-    get_tag_id,
     insert_tag,
-    get_or_insert_tag,
     attach_tags_with_post,
+    get_persistent_tags,
     count_posts,
     insert_post,
     update_tags_by_post_id,
+    count_posts_by_tag,
 )
 
 
@@ -55,29 +56,22 @@ def assert_tag(container, name, count):
             assert v == count
 
 
-def test_get_tag_by_id(app):
+def test_get_persistent_tags(app):
+    tagnames = ["python", "test", "dhaka", "blog", "java", "scala"]  # 4 existing, 2 new
     with app.app_context():
-        tag_id = get_tag_id("python")
-        non_existent_tag = get_tag_id("java")
-    assert tag_id is not None
-    assert non_existent_tag is None
+        tags = get_persistent_tags(tagnames)
+        for tag in tags:
+            assert tag is not None
+            assert tag.id > 0
 
 
 def test_insert_tag(app):
     with app.app_context():
-        tag_id_before_insert = get_tag_id("java")
+        before = get_tag_by_name("java")
         insert_tag("java")
-        tag_id = get_tag_id("java")
-    assert tag_id_before_insert is None
-    assert tag_id is not None
-
-
-def test_get_or_insert_tag(app):
-    with app.app_context():
-        first_id = get_or_insert_tag("python")
-        second_id = get_or_insert_tag("java")
-    assert first_id is not None
-    assert second_id is not None
+        after = get_tag_by_name("java")
+    assert before is None
+    assert after is not None
 
 
 def test_attach_tags_with_post(app):
@@ -108,3 +102,9 @@ def test_update_tags_by_post_id(app):
         tags = get_tags_by_post(1)
 
     assert len(tags) == 5
+
+
+def test_tag_count(app):
+    with app.app_context():
+        tag_count = count_posts_by_tag("test")
+    assert tag_count == 3

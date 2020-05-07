@@ -4,6 +4,7 @@ from flask import (
     Blueprint,
     flash,
     g,
+    current_app,
     redirect,
     render_template,
     request,
@@ -57,6 +58,7 @@ def login():
         if error is None:
             session.clear()
             session["user_id"] = user.id
+            current_app.logger.info("User %s logged in successfully", user.username)
             return redirect(url_for("index"))
 
         flash(error)

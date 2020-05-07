@@ -13,12 +13,15 @@ Building a sample blog platform by following the official tutorial of the Flask 
 - [ ] Making production ready  
 - [ ] update doc mentioning improvements  
 - [ ] Make repo public  
+- [ ] Improve logging wherever necessary  
 
 ### In Progress
 
+- [ ] improve db_service  
 
 ### Done ✓
 
+- [x] configure logging  
 - [x] Using SqlAlchemy instead of raw SQL  
 - [x] Format posts using Markdown.  
 - [x] Tags. Clicking a tag shows all the posts with that tag.  
