@@ -56,7 +56,7 @@ def get_posts(limit, offset):
     posts = (
         db.session.query(Post)
         .order_by(desc(Post.created))
-        .slice(offset, offset + limit + 1)
+        .slice(offset, offset + limit)
         .all()
     )
     return posts
