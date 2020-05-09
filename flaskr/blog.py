@@ -10,6 +10,7 @@ from flask import (
     render_template,
     request,
     url_for,
+    Response,
 )
 from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
@@ -30,6 +31,8 @@ from flaskr.db_service import (
     get_posts_by_tag,
     get_top_tags,
     count_posts_by_tag,
+    get_comments_by_post,
+    insert_comment,
 )
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
@@ -102,7 +105,10 @@ def _get_page(request):
 def detail(post_id):
     post = get_post(post_id, check_author=False)
     reactions = get_reactions_by_entityid(post_id, reactions=REACTIONS)
-    return render_template("blog/detail.html", post=post, reactions=reactions)
+    comments = get_comments_by_post(post_id)
+    return render_template(
+        "blog/detail.html", post=post, reactions=reactions, comments=comments
+    )
 
 
 @bp.route("/create", methods=("GET", "POST"))
@@ -219,3 +225,14 @@ def delete(id):
     get_post(id)
     delete_post_by_id(id)
     return redirect(url_for("blog.index"))
+
+
+@bp.route("/<int:id>/comment", methods=("POST",))
+@login_required
+def comment(id):
+    g.user.id
+    content = request.form["comment-body"]
+    if content:
+        insert_comment(id, g.user.id, content)
+
+    return redirect(url_for("blog.detail", post_id=id))

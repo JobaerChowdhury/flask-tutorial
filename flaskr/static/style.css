@@ -146,6 +146,24 @@ header a.action {
     padding-right: 6px;
 }
 
+.post .comments .comment {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid lightblue;
+    border-radius: 6px;
+    font-size: 0.9em;
+}
+
+.post .comments .comment-form textarea {
+    height: 90px;
+    min-height: 90px;
+}
+
+.post .comments .comment .comment-date {
+    font-size: 0.9em;
+    font-family: monospace;
+}
+
 span.red {
     color: red
 }

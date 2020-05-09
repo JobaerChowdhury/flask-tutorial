@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from flaskr.models import User, Post, Tag, Reaction
+from flaskr.models import User, Post, Tag, Reaction, Comment
 from flaskr.database import db
 
 
@@ -10,6 +10,7 @@ def load_test_data():
     load_posts()
     load_tags()
     load_reactions()
+    load_comments()
 
 
 def load_users():
@@ -48,6 +49,20 @@ def load_posts():
                 title="post without image - " + str(i),
                 body="test body without image",
                 author_id=test_user.id,
+                created=datetime(2019, 5, 18, (15 - i), 17, tzinfo=timezone.utc),
+            )
+        )
+    db.session.commit()
+
+
+def load_comments():
+    test_user = User.query.filter(User.username == "test").first()
+    for i in range(10):
+        db.session.add(
+            Comment(
+                content="test comment number - " + str(i),
+                author_id=test_user.id,
+                post_id=1,
                 created=datetime(2019, 5, 18, (15 - i), 17, tzinfo=timezone.utc),
             )
         )

@@ -3,7 +3,7 @@ from sqlalchemy import func, desc
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from flaskr.database import db
-from flaskr.models import Tag, Post, User, Reaction, post_tag
+from flaskr.models import Tag, Post, User, Reaction, post_tag, Comment
 from flaskr.db_util import get_or_create
 
 
@@ -188,3 +188,40 @@ def get_top_tags(limit=10):
         tags[tag.name] = total
 
     return tags
+
+
+def count_comments_by_post(post_id):
+    return db.session.query(func.count(Comment.id)).filter_by(post_id=post_id).scalar()
+
+
+def get_comments_by_post(post_id):
+    return (
+        db.session.query(Comment)
+        .filter_by(post_id=post_id)
+        .order_by(desc(Comment.created))
+        .all()
+    )
+
+
+def insert_comment(post_id, user_id, content):
+    comment = Comment(post_id=post_id, author_id=user_id, content=content)
+    db.session.add(comment)
+    db.session.commit()
+    return comment.id
+
+
+def get_comment_by_id(comment_id):
+    return Comment.query.get(comment_id)
+
+
+def update_comment(comment_id, new_content):
+    comment = Comment.query.get(comment_id)
+    if comment:
+        comment.content = new_content
+        db.session.commit()
+
+
+def delete_comment(comment_id):
+    comment = Comment.query.get(comment_id)
+    db.session.delete(comment)
+    db.session.commit()

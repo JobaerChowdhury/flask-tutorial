@@ -30,8 +30,11 @@ class Post(db.Model):
 
 
 class Reaction(db.Model):
+    TYPE_POST = "post"
+    TYPE_COMMENT = "comment"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), nullable=False)
+    reaction_type = db.Column(db.String(100), default=TYPE_POST)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     entity_id = db.Column(db.Integer, db.ForeignKey("post.id"))
     created = db.Column(db.DateTime(timezone=True), server_default=now())
@@ -41,3 +44,13 @@ class Reaction(db.Model):
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(200), unique=True)
+
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    author_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    post_id = db.Column(db.Integer, db.ForeignKey("post.id"))
+    content = db.Column(db.Text, nullable=False)
+    created = db.Column(db.DateTime(timezone=True), server_default=now())
+    author = db.relationship("User")
+    post = db.relationship("Post")
