@@ -8,10 +8,7 @@ Building a sample blog platform by following the official tutorial of the Flask 
 ### Todo
 
 - [ ] A search box that filters the index page by name.  
-- [ ] Comments.  
 - [ ] Making production ready  
-- [ ] update doc mentioning improvements  
-- [ ] Make repo public  
 - [ ] Improve logging wherever necessary  
 
 ### In Progress
@@ -19,6 +16,9 @@ Building a sample blog platform by following the official tutorial of the Flask 
 
 ### Done ✓
 
+- [x] Make repo public  
+- [x] update doc mentioning improvements  
+- [x] Comments.  
 - [x] An RSS feed of new posts.  
 - [x] improve db_service  
 - [x] configure logging  
